@@ -1,0 +1,58 @@
+name: Deploy to Ubuntu Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Create .env file
+      run: |
+        echo "NEXT_PUBLIC_MORALIS_API_KEY=${{ secrets.MORALIS_API }}" > .env
+        echo "NEXT_PUBLIC_RPC=${{ secrets.QUICK_RPC }}" >> .env
+        echo "NEXT_PUBLIC_SOL_SNIPER_API_KEY=${{ secrets.SNIPER_API }}" >> .env
+        echo "NEXT_PUBLIC_URL=https://thog.xyz/" >> .env
+
+    - name: Build React app
+      run: npm run build
+
+    - name: Copy files to server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }} 
+        port: 22
+        source: "."
+        target: "/var/www/html/react-app/build"
+        overwrite: true
+        strip_components: 0
+        rm: true
+        debug: true 
+
+    - name: Restart application via PM2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        port: 22
+        script: |
+          cd /var/www/html/react-app/build/
+          pm2 start ecosystem.config.js --env production
+          sudo systemctl restart nginx

@@ -1,0 +1,12 @@
+.xxlButton {
+    @media (max-width: 375px) {
+        width: 280px;
+        height: 110px;
+    }
+}
+
+.xxlButtonText {
+    @media (max-width: 375px) {
+        font-size: 30px;
+    }
+}
