@@ -163,7 +163,7 @@ async function ThogGame() {
         />
 
         <ButtonThog
-          href="https://www.sniper.xyz/collection/theory_of_gravity"
+          href="https://www.sniper.xyz/collection/theory_of_gravit"
           text="GET NFT"
           className={karmaticArcade.className}
         />
